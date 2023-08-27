@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Burning Ship Fractal</title>
+    <style>
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Burning Ship Fractal</h1>
+    <canvas id="canvas" width="600" height="600"></canvas>
+    <br>
+    <label for="maxIterations">Max Iterations:</label>
+    <input type="range" id="maxIterations" name="maxIterations" min="1" max="1000" value="100">
+    <br>
+    <label for="zoom">Zoom:</label>
+    <input type="range" id="zoom" name="zoom" min="1" max="100" value="50">
+    <br>
+    <label for="xOffset">X Offset:</label>
+    <input type="range" id="xOffset" name="xOffset" min="-2" max="2" step="0.01" value="0">
+    <br>
+    <label for="yOffset">Y Offset:</label>
+    <input type="range" id="yOffset" name="yOffset" min="-2" max="2" step="0.01" value="0">
+    <script>
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const maxIterationsInput = document.getElementById('maxIterations');
+      const zoomInput = document.getElementById('zoom');
+      const xOffsetInput = document.getElementById('xOffset');
+      const yOffsetInput = document.getElementById('yOffset');
+
+      let maxIterations = parseInt(maxIterationsInput.value);
+      let zoom = parseInt(zoomInput.value) / 10;
+      let xOffset = parseFloat(xOffsetInput.value);
+      let yOffset = parseFloat(yOffsetInput.value);
+
+      function draw() {
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        for (let x = 0; x < width; x++) {
+          for (let y = 0; y < height; y++) {
+            let zx = 0;
+            let zy = 0;
+            let cx = (x - width / 2) / (zoom * width) + xOffset;
+            let cy = (y - height / 2) / (zoom * height) + yOffset;
+            let i = 0;
+
+            while (i < maxIterations && (zx * zx + zy * zy) < 4) {
+              let xtemp = zx * zx - zy * zy + cx;
+              zy = Math.abs(2 * zx * zy) + cy;
+              zx = Math.abs(xtemp);
+              i++;
+            }
+
+            if (i === maxIterations) {
+              ctx.fillStyle = 'black';
+            } else {
+              const c = i / maxIterations * 255;
+              // ctx.fillStyle = `rgb(${c}, ${c}, ${c})`;
+              ctx.fillStyle = 'blue';
+            }
+
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+
+      function update() {
+        maxIterations = parseInt(maxIterationsInput.value);
+        zoom = parseInt(zoomInput.value) / 10;
+        xOffset = parseFloat(xOffsetInput.value);
+        yOffset = parseFloat(yOffsetInput.value);
+
+        draw();
+      }
+
+      maxIterationsInput.addEventListener('input', update);
+      zoomInput.addEventListener('input', update);
+      xOffsetInput.addEventListener('input', update);
+      yOffsetInput.addEventListener('input', update);
+
+      let isDragging = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      canvas.addEventListener('mousedown', (event) => {
+        isDragging = true;
+        lastX = event.clientX;
+        lastY = event.clientY;
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      canvas.addEventListener('mousemove', (event) => {
+        if (isDragging) {
+          const deltaX = event.clientX - lastX;
+          const deltaY = event.clientY - lastY;
+
+          xOffset += deltaX / (zoom * canvas.width);
+          yOffset += deltaY / (zoom * canvas.height);
+
+          lastX = event.clientX;
+          lastY = event.clientY;
+
+          draw();
+        }
+      });
+
+      canvas.addEventListener('wheel', (event) => {
+        const delta = Math.sign(event.deltaY);
+        zoom += delta / 10;
+
+        draw();
+      });
+
+      draw();
+    </script>
+  </body>
+</html>

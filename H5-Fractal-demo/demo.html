@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Mandelbrot Set</title>
+	<style>
+		canvas {
+			border: 1px solid black;
+			cursor: move;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" width="600" height="400"></canvas>
+	<script>
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d");
+
+		// 设置初始缩放比例和中心点
+		var zoom = 200;
+		var centerX = -0.5;
+		var centerY = 0;
+
+		// 绘制曼德博集合图
+		function drawMandelbrot() {
+			for (var x = 0; x < canvas.width; x++) {
+				for (var y = 0; y < canvas.height; y++) {
+					// 计算当前像素点对应的复数数值
+					var real = centerX + (x - canvas.width/2) / zoom;
+					var imag = centerY + (y - canvas.height/2) / zoom;
+
+					// 计算曼德博集合的迭代次数
+					var zReal = real;
+					var zImag = imag;
+					var n = 0;
+					while (n < 100 && zReal*zReal + zImag*zImag < 4) {
+						var tempReal = zReal*zReal - zImag*zImag + real;
+						var tempImag = 2*zReal*zImag + imag;
+						zReal = tempReal;
+						zImag = tempImag;
+						n++;
+					}
+
+					// 根据迭代次数绘制像素点的颜色
+					if (n == 100) {
+						ctx.fillStyle = "black";
+					} else {
+						var hue = n / 100 * 360;
+						ctx.fillStyle = "hsl(" + hue + ", 100%, 50%)";
+					}
+					ctx.fillRect(x, y, 1, 1);
+				}
+			}
+		}
+		drawMandelbrot();
+
+		// 添加鼠标事件监听器
+		var isDragging = false;
+		var startX, startY;
+		canvas.addEventListener("mousedown", function(e) {
+			isDragging = true;
+			startX = e.clientX;
+			startY = e.clientY;
+		});
+		canvas.addEventListener("mousemove", function(e) {
+			if (isDragging) {
+				var deltaX = e.clientX - startX;
+				var deltaY = e.clientY - startY;
+				centerX -= deltaX / zoom;
+				centerY -= deltaY / zoom;
+				drawMandelbrot();
+				startX = e.clientX;
+				startY = e.clientY;
+			}
+		});
+		canvas.addEventListener("mouseup", function(e) {
+			isDragging = false;
+		});
+		canvas.addEventListener("wheel", function(e) {
+			var delta = e.deltaY;
+			if (delta < 0) {
+				zoom *= 1.1;
+			} else {
+				zoom /= 1.1;
+			}
+			drawMandelbrot();
+		});
+	</script>
+</body>
+</html>
